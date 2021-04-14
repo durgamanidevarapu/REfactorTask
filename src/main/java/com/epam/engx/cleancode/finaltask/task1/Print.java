@@ -23,7 +23,7 @@ public class Print implements Command {
     private static final String NEW_LINE = "\n";
     private static final String PRINT_MESSAGE = "print ";
     public static final String INCORRECT_NUMBER_OF_PARAMETERS_ERROR_MESSAGE =
-            "incorrect number of parameters. Expected 1, but is ";
+            "incorrect number of parameters. Expected 1, but is %s";
 
     private final View view;
     private final DatabaseManager databaseManager;
@@ -65,7 +65,8 @@ public class Print implements Command {
 
     private void validateCommandPartsNumber(int commandLength) {
         if (commandLength != COMMAND_PARTS_NUMBER) {
-            throw new IllegalArgumentException(INCORRECT_NUMBER_OF_PARAMETERS_ERROR_MESSAGE + (commandLength - 1));
+            throw new IllegalArgumentException(String.format(INCORRECT_NUMBER_OF_PARAMETERS_ERROR_MESSAGE,
+                    (commandLength - 1)));
         }
     }
 
