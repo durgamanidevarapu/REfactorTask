@@ -21,7 +21,7 @@ public class Print implements Command {
     private static final String LINE = "║";
     private static final String NEW_LINE = "\n";
     private static final String PRINT_MESSAGE = "print ";
-    public static final String INCORRECT_NUMBER_OF_PARAMETERS_ERROR_MESSAGE ="incorrect number of parameters." +
+    private static final String INCORRECT_NUMBER_OF_PARAMETERS_ERROR_MESSAGE ="incorrect number of parameters." +
             " Expected %d, but is %s";
 
     private final View view;
