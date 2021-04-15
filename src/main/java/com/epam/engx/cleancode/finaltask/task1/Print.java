@@ -23,6 +23,7 @@ public class Print implements Command {
     private static final String PRINT_MESSAGE = "print ";
     private static final String INCORRECT_NUMBER_OF_PARAMETERS_ERROR_MESSAGE ="incorrect number of parameters." +
             " Expected %d, but is %s";
+    private static final int ODD_PREFIX = 3;
 
     private final View view;
     private final DatabaseManager databaseManager;
@@ -89,13 +90,13 @@ public class Print implements Command {
         for (int j = 0; j < length; j++) {
             resultBuilder.append(EQUAL_SIGN);
         }
-        resultBuilder.append(LevelBoundary.UPPER.rightBoundary + NEW_LINE);
-        resultBuilder.append(textEmptyTable + NEW_LINE);
+        resultBuilder.append(LevelBoundary.UPPER.rightBoundary.concat(NEW_LINE));
+        resultBuilder.append(textEmptyTable.concat(NEW_LINE));
         resultBuilder.append(LevelBoundary.BOTTOM.leftBoundary);
         for (int j = 0; j < length; j++) {
             resultBuilder.append(EQUAL_SIGN);
         }
-        resultBuilder.append(LevelBoundary.BOTTOM.rightBoundary + NEW_LINE);
+        resultBuilder.append(LevelBoundary.BOTTOM.rightBoundary.concat(NEW_LINE));
         return resultBuilder.toString();
     }
 
@@ -127,7 +128,7 @@ public class Print implements Command {
         int rowsCount = dataSets.size();
         int maxColumnSize = getMaxColumnSize(dataSets);
         String result = "";
-        maxColumnSize=  maxColumnSize % EVEN_PREFIX == 0 ? maxColumnSize+EVEN_PREFIX : maxColumnSize + 3;
+        maxColumnSize=  maxColumnSize % EVEN_PREFIX == 0 ? maxColumnSize+EVEN_PREFIX : maxColumnSize + ODD_PREFIX;
         int columnCount = getColumnCount(dataSets);
         result = calculateRowResult(dataSets, rowsCount, maxColumnSize, result, columnCount);
         result = createBoundaryLevel(maxColumnSize, result, columnCount, LevelBoundary.BOTTOM);
@@ -158,7 +159,7 @@ public class Print implements Command {
         for (int j = 0; j < maxColumnSize; j++) {
             resultBuilder.append(EQUAL_SIGN);
         }
-        resultBuilder.append(boundary.rightBoundary + NEW_LINE);
+        resultBuilder.append(boundary.rightBoundary.concat(NEW_LINE));
         return resultBuilder.toString();
     }
 
@@ -217,7 +218,7 @@ public class Print implements Command {
         String result = "";
         int columnCount = getColumnCount(dataSets);
         maxColumnSize = getMaxColumnSize(maxColumnSize % EVEN_PREFIX == 0, maxColumnSize + EVEN_PREFIX,
-                maxColumnSize + 3);
+                maxColumnSize + ODD_PREFIX);
         result = createUpperLevel(dataSets, maxColumnSize, result, columnCount);
 
         return  isNotEmptyDataset(dataSets) ? calculateLastStringOfHeader(maxColumnSize, result, columnCount) :
@@ -236,7 +237,7 @@ public class Print implements Command {
         for (int j = 0; j < maxColumnSize; j++) {
             resultBuilder.append(EQUAL_SIGN);
         }
-        resultBuilder.append(LevelBoundary.UPPER.rightBoundary + NEW_LINE);
+        resultBuilder.append(LevelBoundary.UPPER.rightBoundary.concat(NEW_LINE));
         result = resultBuilder.toString();
         List<String> columnNames = dataSets.get(0).getColumnNames();
         result = createUpperLevel(maxColumnSize, result, columnCount, columnNames);
@@ -255,14 +256,12 @@ public class Print implements Command {
 
     private String createUpperLevel(int maxColumnSize, String result, int columnCount, List<String> columnNames) {
         for (int column = 0; column < columnCount; column++) {
-            StringBuilder resultBuilder = new StringBuilder(result);
-            resultBuilder.append(LINE);
+            result = result.concat(LINE);
             int columnNamesLength = columnNames.get(column).length();
             int prefixLength = getLength(maxColumnSize, columnNamesLength);
-            result = resultBuilder.toString();
             result =calculateForColumns(prefixLength, result, columnNames.get(column));
             if((columnNamesLength % EVEN_PREFIX != 0)) {
-                result = new StringBuilder(result).append(SPACE).toString();
+                result = result.concat(SPACE);
             }
         }
         return result;
