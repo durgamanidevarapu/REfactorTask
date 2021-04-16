@@ -191,9 +191,7 @@ public class Print implements Command {
         StringBuilder resultBuilder = new StringBuilder();
         resultBuilder.append(boundary.leftBoundary);
         String equalLine = duplicateSymbol(EQUAL_SIGN, maxColumnSize);
-       for (int j = 1; j < columnCount; j++) {
-            resultBuilder.append(equalLine).append(boundary.middleBoundary);
-        }
+        resultBuilder.append(duplicateSymbol(equalLine+boundary.middleBoundary, columnCount-1));
         resultBuilder.append(equalLine);
         resultBuilder.append(boundary.rightBoundary).append(NEW_LINE);
         return resultBuilder.toString();
