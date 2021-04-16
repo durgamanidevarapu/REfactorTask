@@ -22,8 +22,9 @@ public class Print implements Command {
     private static final String INCORRECT_NUMBER_OF_PARAMETERS_ERROR_MESSAGE = "incorrect number of parameters." +
             " Expected %d, but is %s";
     private static final int ODD_PREFIX = 3;
-    public static final int TABLE = 1;
-    public static final String BOUNDARY_TEMPLATE = "╔%s╗\n%s\n╚%s╝\n";
+    private static final int TABLE = 1;
+    private static final String BOUNDARY_TEMPLATE = "╔%s╗\n%s\n╚%s╝\n";
+    private static final String UPPER_SPACE_TEMPLATE = "║%s%s%s";
 
     private final View view;
     private final DatabaseManager databaseManager;
@@ -138,12 +139,12 @@ public class Print implements Command {
         for (int column = 0; column < columnCount; column++) {
             int valuesLength = String.valueOf(values.get(column)).length();
             int length = getLength(maxColumnSize, valuesLength);
-            builder.append(duplicateSymbol(SPACE, length)).append((values.get(column)))
-                    .append(duplicateSymbol(SPACE, length));
-            String lastString = (valuesLength % EVEN_PREFIX == 0) ? LINE : (SPACE) + (LINE);
+            String line = duplicateSymbol(SPACE, length);
+            builder.append(line).append((values.get(column)))
+                    .append(line);
+            String lastString = (valuesLength % EVEN_PREFIX == 0) ? LINE : SPACE + LINE;
             builder.append(lastString);
         }
-
         return builder.append(NEW_LINE).toString();
     }
 
@@ -172,7 +173,7 @@ public class Print implements Command {
         builder.append(createBoundaryLevel(maxColumnSize, columnCount, LevelBoundary.UPPER));
         List<String> columnNames = dataSets.get(0).getColumnNames();
         builder.append(createUpperLevel(maxColumnSize, columnCount, columnNames));
-        builder.append(LINE + NEW_LINE);
+        builder.append(LINE).append(NEW_LINE);
         LevelBoundary boundary = isNotEmptyDataset(dataSets) ? LevelBoundary.MIDDLE : LevelBoundary.BOTTOM;
         builder.append(createBoundaryLevel(maxColumnSize, columnCount, boundary));
         return builder.toString();
@@ -186,22 +187,23 @@ public class Print implements Command {
     private String createBoundaryLevel(int maxColumnSize, int columnCount, LevelBoundary boundary) {
         StringBuilder resultBuilder = new StringBuilder();
         resultBuilder.append(boundary.leftBoundary);
-        for (int j = 1; j < columnCount; j++) {
-            resultBuilder.append(duplicateSymbol(EQUAL_SIGN, maxColumnSize)).append(boundary.middleBoundary);
+        String equalLine = duplicateSymbol(EQUAL_SIGN, maxColumnSize);
+       for (int j = 1; j < columnCount; j++) {
+            resultBuilder.append(equalLine).append(boundary.middleBoundary);
         }
-        resultBuilder.append(duplicateSymbol(EQUAL_SIGN, maxColumnSize));
-        resultBuilder.append(boundary.rightBoundary.concat(NEW_LINE));
+        resultBuilder.append(equalLine);
+        resultBuilder.append(boundary.rightBoundary).append(NEW_LINE);
         return resultBuilder.toString();
     }
 
     private String createUpperLevel(int maxColumnSize, int columnCount, List<String> columnNames) {
         StringBuilder builder = new StringBuilder();
         for (int column = 0; column < columnCount; column++) {
-            builder.append(LINE);
             int columnNamesLength = columnNames.get(column).length();
             int length = getLength(maxColumnSize, columnNamesLength);
             String columnName = columnNames.get(column);
-            builder.append(duplicateSymbol(SPACE, length)).append(columnName).append(duplicateSymbol(SPACE, length));
+            String spaceLine = duplicateSymbol(SPACE, length);
+            builder.append(String.format(UPPER_SPACE_TEMPLATE,spaceLine,columnName,spaceLine));
             if ((columnNamesLength % EVEN_PREFIX != 0)) {
                 builder.append(SPACE);
             }
