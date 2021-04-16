@@ -1,6 +1,5 @@
 package com.epam.engx.cleancode.finaltask.task1;
 
-
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -10,20 +9,21 @@ import com.epam.engx.cleancode.finaltask.task1.thirdpartyjar.DataSet;
 import com.epam.engx.cleancode.finaltask.task1.thirdpartyjar.DatabaseManager;
 import com.epam.engx.cleancode.finaltask.task1.thirdpartyjar.View;
 
-
 public class Print implements Command {
 
     private static final String EQUAL_SIGN = "═";
     private static final String SPACE = " ";
     private static final int EVEN_PREFIX = 2;
     private static final int COMMAND_PARTS_NUMBER = 2;
-    private static final String IS_EMPTY_OR_DOES_NOT_EXIST_TABLE_MESSAGE = "║ Table '%s' is empty or does not exist ║";
+    private static final String EMPTY_TABLE_TEMPLATE = "║ Table '%s' is empty or does not exist ║";
     private static final String LINE = "║";
     private static final String NEW_LINE = "\n";
     private static final String PRINT_MESSAGE = "print ";
-    private static final String INCORRECT_NUMBER_OF_PARAMETERS_ERROR_MESSAGE ="incorrect number of parameters." +
+    private static final String INCORRECT_NUMBER_OF_PARAMETERS_ERROR_MESSAGE = "incorrect number of parameters." +
             " Expected %d, but is %s";
     private static final int ODD_PREFIX = 3;
+    public static final int TABLE = 1;
+    public static final String BOUNDARY_TEMPLATE = "╔%s╗\n%s\n╚%s╝\n";
 
     private final View view;
     private final DatabaseManager databaseManager;
@@ -44,7 +44,6 @@ public class Print implements Command {
         }
     }
 
-
     public Print(View view, DatabaseManager databaseManager) {
         this.view = view;
         this.databaseManager = databaseManager;
@@ -57,43 +56,32 @@ public class Print implements Command {
 
     @Override
     public void process(String input) {
-        String[] commands = input.split(SPACE);
-        isValidCommand(commands);
-        String tableName = commands[1];
+        String[] commandParts = input.split(SPACE);
+        validateCommandPartsNumber(commandParts.length);
+        String tableName = commandParts[TABLE];
         List<DataSet> data = databaseManager.getTableData(tableName);
-        view.write(convertTableDataToString(data,tableName));
+        view.write(convertTableDataToString(data, tableName));
     }
 
-    private void isValidCommand(String[] command) {
-        if (command.length != COMMAND_PARTS_NUMBER) {
+    private void validateCommandPartsNumber(int commandlength) {
+        if (commandlength != COMMAND_PARTS_NUMBER) {
             throw new IllegalArgumentException(String.format(INCORRECT_NUMBER_OF_PARAMETERS_ERROR_MESSAGE, 1,
-                    command.length - 1));
+                    commandlength - 1));
         }
     }
 
-    private String convertTableDataToString(List<DataSet> data,String tableName) {
+    private String convertTableDataToString(List<DataSet> data, String tableName) {
         int maxColumnSize;
         maxColumnSize = getMaxColumnSize(data);
         return maxColumnSize == 0 ? getEmptyTable(tableName) : (createHeaderForTable(data) + convertTableData(data));
     }
 
     private String getEmptyTable(String tableName) {
-        String textEmptyTable = String.format(IS_EMPTY_OR_DOES_NOT_EXIST_TABLE_MESSAGE,tableName);
-        StringBuilder builder = new StringBuilder(LevelBoundary.UPPER.leftBoundary);
+        String textEmptyTable = String.format(EMPTY_TABLE_TEMPLATE, tableName);
         int length = textEmptyTable.length() - EVEN_PREFIX;
-        builder.append(createBoundary(textEmptyTable, length));
-        return builder.toString();
-    }
+        String line = duplicateSymbol(EQUAL_SIGN, length);
+        return String.format(BOUNDARY_TEMPLATE, line, textEmptyTable, line);
 
-    private String createBoundary(String textEmptyTable, int length) {
-        StringBuilder resultBuilder = new StringBuilder();
-        resultBuilder.append(duplicateSymbol(EQUAL_SIGN,length));
-        resultBuilder.append(LevelBoundary.UPPER.rightBoundary.concat(NEW_LINE));
-        resultBuilder.append(textEmptyTable.concat(NEW_LINE));
-        resultBuilder.append(LevelBoundary.BOTTOM.leftBoundary);
-        resultBuilder.append(duplicateSymbol(EQUAL_SIGN,length));
-        resultBuilder.append(LevelBoundary.BOTTOM.rightBoundary.concat(NEW_LINE));
-        return resultBuilder.toString();
     }
 
     private int getMaxColumnSize(List<DataSet> dataSets) {
@@ -103,9 +91,9 @@ public class Print implements Command {
             maxLength = Collections.max(columnNames).length();
             for (DataSet dataSet : dataSets) {
                 List<Object> dataSetValues = dataSet.getValues();
-                Object dataSetValue  = getMaxDataSetValue(dataSetValues);
+                Object dataSetValue = getMaxDataSetValue(dataSetValues);
                 int maxValue = String.valueOf(dataSetValue).length();
-                maxLength = getMaxColumnSize(maxValue>maxLength, maxValue, maxLength);
+                maxLength = Math.max(maxValue, maxLength);
             }
         }
         return maxLength;
@@ -124,7 +112,7 @@ public class Print implements Command {
         int rowsCount = dataSets.size();
         int maxColumnSize = getMaxColumnSize(dataSets);
         StringBuilder builder = new StringBuilder();
-        maxColumnSize=  maxColumnSize % EVEN_PREFIX == 0 ? maxColumnSize+EVEN_PREFIX : maxColumnSize + ODD_PREFIX;
+        maxColumnSize = maxColumnSize % EVEN_PREFIX == 0 ? maxColumnSize + EVEN_PREFIX : maxColumnSize + ODD_PREFIX;
         int columnCount = getColumnCount(dataSets);
         builder.append(calculateRowResult(dataSets, rowsCount, maxColumnSize, columnCount));
         builder.append(createBoundaryLevel(maxColumnSize, columnCount, LevelBoundary.BOTTOM));
@@ -144,6 +132,57 @@ public class Print implements Command {
         return builder.toString();
     }
 
+    private String createColumnResult(int maxColumnSize, int columnCount, List<Object> values) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(LINE);
+        for (int column = 0; column < columnCount; column++) {
+            int valuesLength = String.valueOf(values.get(column)).length();
+            int length = getLength(maxColumnSize, valuesLength);
+            builder.append(duplicateSymbol(SPACE, length)).append((values.get(column)))
+                    .append(duplicateSymbol(SPACE, length));
+            String lastString = (valuesLength % EVEN_PREFIX == 0) ? LINE : (SPACE) + (LINE);
+            builder.append(lastString);
+        }
+
+        return builder.append(NEW_LINE).toString();
+    }
+
+    private int getLength(int maxColumnSize, int valuesLength) {
+        return (maxColumnSize - valuesLength) / EVEN_PREFIX;
+    }
+
+    private String duplicateSymbol(String symbol, int times) {
+        StringBuilder builder = new StringBuilder();
+        for (int j = 0; j < times; j++) {
+            builder.append(symbol);
+        }
+        return builder.toString();
+    }
+
+    private boolean isNotEmptyDataset(List<DataSet> dataSets) {
+        return !dataSets.isEmpty();
+    }
+
+    private String createHeaderForTable(List<DataSet> dataSets) {
+        int maxColumnSize = getMaxColumnSize(dataSets);
+        StringBuilder builder = new StringBuilder();
+        int columnCount = getColumnCount(dataSets);
+        maxColumnSize = getMaxColumnSize(maxColumnSize % EVEN_PREFIX == 0, maxColumnSize + EVEN_PREFIX,
+                maxColumnSize + ODD_PREFIX);
+        builder.append(createBoundaryLevel(maxColumnSize, columnCount, LevelBoundary.UPPER));
+        List<String> columnNames = dataSets.get(0).getColumnNames();
+        builder.append(createUpperLevel(maxColumnSize, columnCount, columnNames));
+        builder.append(LINE + NEW_LINE);
+        LevelBoundary boundary = isNotEmptyDataset(dataSets) ? LevelBoundary.MIDDLE : LevelBoundary.BOTTOM;
+        builder.append(createBoundaryLevel(maxColumnSize, columnCount, boundary));
+        return builder.toString();
+    }
+
+    private int getColumnCount(List<DataSet> dataSets) {
+        int result = 0;
+        return (isNotEmptyDataset(dataSets)) ? dataSets.get(0).getColumnNames().size() : result;
+    }
+
     private String createBoundaryLevel(int maxColumnSize, int columnCount, LevelBoundary boundary) {
         StringBuilder resultBuilder = new StringBuilder();
         resultBuilder.append(boundary.leftBoundary);
@@ -155,82 +194,6 @@ public class Print implements Command {
         return resultBuilder.toString();
     }
 
-    private String createColumnResult(int maxColumnSize, int columnCount, List<Object> values) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(LINE);
-        for (int column = 0; column < columnCount; column++) {
-            int valuesLength = String.valueOf(values.get(column)).length();
-            int length = getLength(maxColumnSize, valuesLength);
-            builder.append(duplicateSymbol(SPACE, length)).append((values.get(column)))
-                    .append(duplicateSymbol(SPACE, length));
-            String lastString = (valuesLength % EVEN_PREFIX == 0) ? LINE : (SPACE)+(LINE);
-            builder.append(lastString);
-        }
-
-        return builder.append(NEW_LINE).toString();
-    }
-
-    private int getLength(int maxColumnSize, int valuesLength) {
-        return (maxColumnSize - valuesLength) / EVEN_PREFIX;
-    }
-
-
-
-    private String duplicateSymbol(String symbol, int times) {
-        StringBuilder builder= new StringBuilder();
-        for (int j = 0; j < times; j++) {
-            builder.append(symbol);
-        }
-        return builder.toString();
-    }
-
-    private int getColumnCount(List<DataSet> dataSets) {
-        int result = 0;
-       return (isNotEmptyDataset(dataSets)) ? dataSets.get(0).getColumnNames().size() : result;
-    }
-
-    private boolean isNotEmptyDataset(List<DataSet> dataSets) {
-        return !dataSets.isEmpty();
-    }
-
-    private String createHeaderForTable(List<DataSet> dataSets) {
-        int maxColumnSize = getMaxColumnSize(dataSets);
-        String result = "";
-        int columnCount = getColumnCount(dataSets);
-        maxColumnSize = getMaxColumnSize(maxColumnSize % EVEN_PREFIX == 0, maxColumnSize + EVEN_PREFIX,
-                maxColumnSize + ODD_PREFIX);
-        result += createUpperLevel(dataSets, maxColumnSize, columnCount);
-
-        return  isNotEmptyDataset(dataSets) ? result+calculateLastStringOfHeader(maxColumnSize, columnCount) :
-                result+createBottomLevel(maxColumnSize, columnCount);
-    }
-
-    private String createUpperLevel(List<DataSet> dataSets, int maxColumnSize, int columnCount) {
-        StringBuilder resultBuilder = new StringBuilder();
-       resultBuilder.append(LevelBoundary.UPPER.leftBoundary);
-        for (int j = 1; j < columnCount; j++) {
-            resultBuilder.append(duplicateSymbol(EQUAL_SIGN,maxColumnSize)).append(LevelBoundary.UPPER.middleBoundary);
-        }
-
-        resultBuilder.append(duplicateSymbol(EQUAL_SIGN,maxColumnSize));
-        resultBuilder.append(LevelBoundary.UPPER.rightBoundary.concat(NEW_LINE));
-
-        List<String> columnNames = dataSets.get(0).getColumnNames();
-        resultBuilder.append(createUpperLevel(maxColumnSize, columnCount, columnNames));
-        resultBuilder.append(LINE+NEW_LINE);
-        return resultBuilder.toString();
-    }
-
-    private String createBottomLevel(int maxColumnSize, int columnCount) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(LevelBoundary.BOTTOM.leftBoundary);
-        for (int j = 1; j < columnCount; j++) {
-            builder.append(builder.append(duplicateSymbol(EQUAL_SIGN,maxColumnSize)).append(LevelBoundary.BOTTOM.middleBoundary));
-        }
-        builder.append(builder.append(duplicateSymbol(EQUAL_SIGN,maxColumnSize)).append(LevelBoundary.BOTTOM.rightBoundary + NEW_LINE));
-        return builder.toString();
-    }
-
     private String createUpperLevel(int maxColumnSize, int columnCount, List<String> columnNames) {
         StringBuilder builder = new StringBuilder();
         for (int column = 0; column < columnCount; column++) {
@@ -239,7 +202,7 @@ public class Print implements Command {
             int length = getLength(maxColumnSize, columnNamesLength);
             String columnName = columnNames.get(column);
             builder.append(duplicateSymbol(SPACE, length)).append(columnName).append(duplicateSymbol(SPACE, length));
-            if((columnNamesLength % EVEN_PREFIX != 0)) {
+            if ((columnNamesLength % EVEN_PREFIX != 0)) {
                 builder.append(SPACE);
             }
         }
@@ -250,19 +213,4 @@ public class Print implements Command {
         return isValid ? max1 : max2;
     }
 
-    private String calculateLastStringOfHeader(int maxColumnSize, int columnCount) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(LevelBoundary.MIDDLE.leftBoundary);
-        builder.append(createColumnHeader(maxColumnSize, columnCount, LevelBoundary.MIDDLE));
-        builder.append(duplicateSymbol(EQUAL_SIGN,maxColumnSize)).append(LevelBoundary.MIDDLE.rightBoundary + NEW_LINE);
-        return builder.toString();
-    }
-
-    private String createColumnHeader(int maxColumnSize, int columnCount, LevelBoundary middle) {
-        StringBuilder resultBuilder = new StringBuilder();
-        for (int j = 1; j < columnCount; j++) {
-            resultBuilder.append(duplicateSymbol(EQUAL_SIGN, maxColumnSize)).append(middle.middleBoundary);
-        }
-        return resultBuilder.toString();
-    }
 }
