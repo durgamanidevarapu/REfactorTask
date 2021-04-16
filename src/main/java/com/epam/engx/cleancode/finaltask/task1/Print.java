@@ -25,6 +25,7 @@ public class Print implements Command {
     private static final int TABLE = 1;
     private static final String BOUNDARY_TEMPLATE = "╔%s╗\n%s\n╚%s╝\n";
     private static final String UPPER_SPACE_TEMPLATE = "║%s%s%s";
+    private static final int EMPTY = 0;
 
     private final View view;
     private final DatabaseManager databaseManager;
@@ -113,7 +114,7 @@ public class Print implements Command {
         int rowsCount = dataSets.size();
         int maxColumnSize = getMaxColumnSize(dataSets);
         StringBuilder builder = new StringBuilder();
-        maxColumnSize = maxColumnSize % EVEN_PREFIX == 0 ? maxColumnSize + EVEN_PREFIX : maxColumnSize + ODD_PREFIX;
+        maxColumnSize = getPrefix(maxColumnSize);
         int columnCount = getColumnCount(dataSets);
         builder.append(calculateRowResult(dataSets, rowsCount, maxColumnSize, columnCount));
         builder.append(createBoundaryLevel(maxColumnSize, columnCount, LevelBoundary.BOTTOM));
@@ -134,8 +135,7 @@ public class Print implements Command {
     }
 
     private String createColumnResult(int maxColumnSize, int columnCount, List<Object> values) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(LINE);
+        StringBuilder builder = new StringBuilder(LINE);
         for (int column = 0; column < columnCount; column++) {
             int valuesLength = String.valueOf(values.get(column)).length();
             int length = getLength(maxColumnSize, valuesLength);
@@ -168,8 +168,7 @@ public class Print implements Command {
         int maxColumnSize = getMaxColumnSize(dataSets);
         StringBuilder builder = new StringBuilder();
         int columnCount = getColumnCount(dataSets);
-        maxColumnSize = getMaxColumnSize(maxColumnSize % EVEN_PREFIX == 0, maxColumnSize + EVEN_PREFIX,
-                maxColumnSize + ODD_PREFIX);
+        maxColumnSize = getPrefix(maxColumnSize);
         builder.append(createBoundaryLevel(maxColumnSize, columnCount, LevelBoundary.UPPER));
         List<String> columnNames = dataSets.get(0).getColumnNames();
         builder.append(createUpperLevel(maxColumnSize, columnCount, columnNames));
@@ -179,9 +178,13 @@ public class Print implements Command {
         return builder.toString();
     }
 
+    private int getPrefix(int maxColumnSize) {
+        return maxColumnSize % EVEN_PREFIX == 0? maxColumnSize + EVEN_PREFIX:
+                maxColumnSize + ODD_PREFIX;
+    }
+
     private int getColumnCount(List<DataSet> dataSets) {
-        int result = 0;
-        return (isNotEmptyDataset(dataSets)) ? dataSets.get(0).getColumnNames().size() : result;
+        return (isNotEmptyDataset(dataSets)) ? dataSets.get(0).getColumnNames().size() : EMPTY;
     }
 
     private String createBoundaryLevel(int maxColumnSize, int columnCount, LevelBoundary boundary) {
@@ -209,10 +212,6 @@ public class Print implements Command {
             }
         }
         return builder.toString();
-    }
-
-    private int getMaxColumnSize(boolean isValid, int max1, int max2) {
-        return isValid ? max1 : max2;
     }
 
 }
