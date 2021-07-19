@@ -1,5 +1,10 @@
-package com.epam.engx.cleancode.finaltask.task1;
+package com.engx.cleancode.finaltask.task1;
 
+import com.engx.cleancode.finaltask.task1.thirdpartyjar.Command;
+import com.engx.cleancode.finaltask.task1.thirdpartyjar.DataSet;
+import com.engx.cleancode.finaltask.task1.thirdpartyjar.DataSetImpl;
+import com.engx.cleancode.finaltask.task1.thirdpartyjar.DatabaseManager;
+import com.engx.cleancode.finaltask.task1.thirdpartyjar.View;
 import com.epam.engx.cleancode.finaltask.task1.thirdpartyjar.*;
 import org.junit.Before;
 import org.junit.Test;

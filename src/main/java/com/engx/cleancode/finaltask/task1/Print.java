@@ -1,13 +1,13 @@
-package com.epam.engx.cleancode.finaltask.task1;
+package com.engx.cleancode.finaltask.task1;
 
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import com.epam.engx.cleancode.finaltask.task1.thirdpartyjar.Command;
-import com.epam.engx.cleancode.finaltask.task1.thirdpartyjar.DataSet;
-import com.epam.engx.cleancode.finaltask.task1.thirdpartyjar.DatabaseManager;
-import com.epam.engx.cleancode.finaltask.task1.thirdpartyjar.View;
+import com.engx.cleancode.finaltask.task1.thirdpartyjar.Command;
+import com.engx.cleancode.finaltask.task1.thirdpartyjar.DataSet;
+import com.engx.cleancode.finaltask.task1.thirdpartyjar.DatabaseManager;
+import com.engx.cleancode.finaltask.task1.thirdpartyjar.View;
 
 public class Print implements Command {
 

@@ -1,4 +1,4 @@
-package com.epam.engx.cleancode.finaltask.task1.thirdpartyjar;
+package com.engx.cleancode.finaltask.task1.thirdpartyjar;
 
 import java.util.*;
 
